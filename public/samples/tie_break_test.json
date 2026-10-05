@@ -1,0 +1,21 @@
+{
+  "building": "Tie-Breaking Verification Wing",
+  "nodes": [
+    { "id": "R1", "label": "Origin Room", "type": "room", "x": 100, "y": 250 },
+    { "id": "J1", "label": "Alpha Corridor", "type": "junction", "x": 300, "y": 150 },
+    { "id": "J2", "label": "Beta Corridor", "type": "junction", "x": 300, "y": 350 },
+    { "id": "EA", "label": "Emergency Exit Alpha", "type": "exit", "x": 500, "y": 150 },
+    { "id": "EB", "label": "Emergency Exit Beta", "type": "exit", "x": 500, "y": 350 }
+  ],
+  "edges": [
+    { "id": "e1", "from": "R1", "to": "J1", "cost": 3 },
+    { "id": "e2", "from": "J1", "to": "EA", "cost": 3 },
+    { "id": "e3", "from": "R1", "to": "J2", "cost": 3 },
+    { "id": "e4", "from": "J2", "to": "EB", "cost": 3 }
+  ],
+  "initial_state": {
+    "blocked_nodes": [],
+    "blocked_edges": [],
+    "closed_exits": []
+  }
+}

@@ -1,0 +1,20 @@
+{
+  "building": "West Annex & Isolated Tower",
+  "nodes": [
+    { "id": "R1", "label": "Isolated Research Lab", "type": "room", "x": 120, "y": 150 },
+    { "id": "R2", "label": "Storage Room", "type": "room", "x": 120, "y": 350 },
+    { "id": "C1", "label": "Isolated Hallway", "type": "junction", "x": 280, "y": 150 },
+    { "id": "C2", "label": "Main Concourse", "type": "junction", "x": 480, "y": 350 },
+    { "id": "E1", "label": "Central Gate Exit", "type": "exit", "x": 660, "y": 350 }
+  ],
+  "edges": [
+    { "id": "e1", "from": "R1", "to": "C1", "cost": 3 },
+    { "id": "e2", "from": "R2", "to": "C2", "cost": 4 },
+    { "id": "e3", "from": "C2", "to": "E1", "cost": 2 }
+  ],
+  "initial_state": {
+    "blocked_nodes": [],
+    "blocked_edges": [],
+    "closed_exits": []
+  }
+}
