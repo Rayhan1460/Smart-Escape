@@ -4,41 +4,61 @@
   --font-sans: 'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
   --font-mono: 'JetBrains Mono', monospace;
 
-  /* Theme Colors */
-  --bg-app: #080c14;
-  --bg-sidebar: #0d1322;
-  --bg-card: #111a2e;
-  --bg-card-subtle: #16223b;
-  --bg-hover: #1c2b4a;
+  /* Tactical Command-Center Theme Colors */
+  --bg-app: #060911;
+  --bg-sidebar: #090e1a;
+  --bg-card: #0d1527;
+  --bg-card-subtle: #121d33;
+  --bg-card-elevated: #16243f;
+  --bg-hover: #192a4a;
 
-  --border-subtle: #1e2c47;
-  --border-strong: #2a3d63;
+  /* Borders */
+  --border-subtle: rgba(255, 255, 255, 0.08);
+  --border-medium: rgba(255, 255, 255, 0.14);
+  --border-strong: rgba(56, 189, 248, 0.28);
   --border-focus: #38bdf8;
 
+  /* Typography Colors */
   --text-main: #f8fafc;
   --text-muted: #94a3b8;
   --text-dim: #64748b;
+  --text-highlight: #ffffff;
 
-  /* Accent Colors */
+  /* Emergency Command Accents */
   --cyan-bright: #38bdf8;
-  --cyan-glow: #0ea5e9;
-  --emerald-bright: #10b981;
-  --emerald-dark: #064e3b;
-  --danger-bright: #ef4444;
-  --danger-dark: #450a0a;
-  --amber-bright: #f59e0b;
-  --purple-bright: #8b5cf6;
-  --blue-bright: #3b82f6;
+  --cyan-neon: #00e5ff;
+  --cyan-glow: rgba(0, 229, 255, 0.35);
+  --cyan-subtle: rgba(56, 189, 248, 0.12);
 
-  /* Shadows */
-  --shadow-sm: 0 1px 2px 0 rgba(0, 0, 0, 0.4);
-  --shadow-md: 0 4px 12px 0 rgba(0, 0, 0, 0.45);
-  --shadow-lg: 0 10px 25px -3px rgba(0, 0, 0, 0.6);
-  --shadow-glow-cyan: 0 0 15px rgba(56, 189, 248, 0.35);
+  --emerald-bright: #10b981;
+  --emerald-neon: #05df72;
+  --emerald-glow: rgba(16, 185, 129, 0.3);
+  --emerald-subtle: rgba(16, 185, 129, 0.12);
+
+  --danger-bright: #ef4444;
+  --danger-glow: rgba(239, 68, 68, 0.3);
+  --danger-subtle: rgba(239, 68, 68, 0.12);
+  --danger-border: rgba(239, 68, 68, 0.35);
+
+  --amber-bright: #f59e0b;
+  --amber-subtle: rgba(245, 158, 11, 0.12);
+
+  --purple-bright: #8b5cf6;
+  --purple-subtle: rgba(139, 92, 246, 0.15);
+
+  --blue-bright: #3b82f6;
+  --blue-subtle: rgba(59, 130, 246, 0.15);
+
+  /* Shadows & Depth */
+  --shadow-sm: 0 1px 3px rgba(0, 0, 0, 0.5);
+  --shadow-md: 0 4px 14px rgba(0, 0, 0, 0.55);
+  --shadow-lg: 0 10px 30px rgba(0, 0, 0, 0.7);
+  --shadow-glow-cyan: 0 0 18px rgba(0, 229, 255, 0.28);
+  --shadow-glow-emerald: 0 0 18px rgba(16, 185, 129, 0.28);
 
   /* Transitions */
   --transition-fast: 150ms cubic-bezier(0.4, 0, 0.2, 1);
-  --transition-smooth: 250ms cubic-bezier(0.4, 0, 0.2, 1);
+  --transition-smooth: 220ms cubic-bezier(0.4, 0, 0.2, 1);
 }
 
 *, *::before, *::after {
@@ -56,6 +76,10 @@ body {
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
   overflow-x: hidden;
+  background-image: 
+    radial-gradient(circle at 50% 0%, rgba(56, 189, 248, 0.035) 0%, transparent 50%),
+    radial-gradient(circle at 100% 100%, rgba(16, 185, 129, 0.02) 0%, transparent 40%);
+  background-attachment: fixed;
 }
 
 button, input, select, textarea {
@@ -76,10 +100,10 @@ input:focus-visible {
   outline-offset: 2px;
 }
 
-/* Scrollbar styling */
+/* Custom Tactical Scrollbar */
 ::-webkit-scrollbar {
-  width: 6px;
-  height: 6px;
+  width: 5px;
+  height: 5px;
 }
 
 ::-webkit-scrollbar-track {
@@ -87,10 +111,10 @@ input:focus-visible {
 }
 
 ::-webkit-scrollbar-thumb {
-  background: var(--border-strong);
-  border-radius: 3px;
+  background: rgba(148, 163, 184, 0.22);
+  border-radius: 4px;
 }
 
 ::-webkit-scrollbar-thumb:hover {
-  background: var(--text-dim);
+  background: rgba(148, 163, 184, 0.4);
 }

@@ -2,7 +2,8 @@ import React, { useState, useRef, useMemo } from 'react';
 import {
   ZoomIn,
   ZoomOut,
-  Maximize2
+  Maximize2,
+  Crosshair
 } from 'lucide-react';
 
 export function BuildingMap({
@@ -47,9 +48,9 @@ export function BuildingMap({
       if (n.y > maxY) maxY = n.y;
     }
 
-    const padding = 80;
-    const w = Math.max(maxX - minX + padding * 2, 400);
-    const h = Math.max(maxY - minY + padding * 2, 300);
+    const padding = 85;
+    const w = Math.max(maxX - minX + padding * 2, 420);
+    const h = Math.max(maxY - minY + padding * 2, 320);
 
     const x = minX - padding;
     const y = minY - padding;
@@ -68,8 +69,7 @@ export function BuildingMap({
 
   // Pan Handlers
   const handleMouseDown = (e) => {
-    // Only pan on background drag
-    if (e.target.tagName === 'svg' || e.target.classList.contains('map-bg-grid')) {
+    if (e.target.tagName === 'svg' || e.target.classList.contains('map-bg-blueprint') || e.target.classList.contains('blueprint-grid-rect')) {
       setIsPanning(true);
       setDragStart({ x: e.clientX - panOffset.x, y: e.clientY - panOffset.y });
     }
@@ -91,7 +91,7 @@ export function BuildingMap({
   const handleZoom = (delta) => {
     setZoomLevel((prev) => {
       const next = prev + delta;
-      return Math.min(Math.max(next, 0.5), 3);
+      return Math.min(Math.max(next, 0.4), 3.2);
     });
   };
 
@@ -106,7 +106,6 @@ export function BuildingMap({
     if (node.type === 'exit') {
       onToggleExitClose(node.id);
     } else {
-      // Room or Junction
       if (blockedNodes.has(node.id)) {
         onToggleNodeBlock(node.id);
       } else {
@@ -119,20 +118,26 @@ export function BuildingMap({
     <div className="map-dashboard-card">
       <div className="map-card-header">
         <div className="map-title-row">
-          <div className="map-status-dot"></div>
-          <h2 className="map-card-title">Evacuation Floorplan Map</h2>
-          <span className="map-scale-tag">UNDIRECTED GRAPH</span>
+          <div className="map-status-dot-container">
+            <span className="map-status-dot"></span>
+            <span className="map-status-dot-ring"></span>
+          </div>
+          <div className="map-title-text-group">
+            <h2 className="map-card-title">Evacuation Floorplan Graph</h2>
+            <span className="map-scale-tag">SIMULATED BLUEPRINT · 1:1 UNDIRECTED</span>
+          </div>
         </div>
 
         {/* Zoom & View Controls */}
         <div className="map-view-controls">
+          <div className="zoom-level-badge">{Math.round(zoomLevel * 100)}%</div>
           <button
             className="map-control-btn"
             onClick={() => handleZoom(0.2)}
             title={t.zoomIn}
             aria-label={t.zoomIn}
           >
-            <ZoomIn size={16} />
+            <ZoomIn size={15} />
           </button>
           <button
             className="map-control-btn"
@@ -140,7 +145,7 @@ export function BuildingMap({
             title={t.zoomOut}
             aria-label={t.zoomOut}
           >
-            <ZoomOut size={16} />
+            <ZoomOut size={15} />
           </button>
           <button
             className="map-control-btn"
@@ -148,7 +153,7 @@ export function BuildingMap({
             title={t.resetView}
             aria-label={t.resetView}
           >
-            <Maximize2 size={16} />
+            <Maximize2 size={15} />
           </button>
         </div>
       </div>
@@ -161,6 +166,12 @@ export function BuildingMap({
         onMouseUp={handleMouseUp}
         onMouseLeave={handleMouseUp}
       >
+        {/* Tactical Corner Crosshairs */}
+        <div className="map-corner-crosshair top-left"><Crosshair size={14} /></div>
+        <div className="map-corner-crosshair top-right"><Crosshair size={14} /></div>
+        <div className="map-corner-crosshair bottom-left"><Crosshair size={14} /></div>
+        <div className="map-corner-crosshair bottom-right"><Crosshair size={14} /></div>
+
         <svg
           ref={svgRef}
           className="building-svg"
@@ -170,34 +181,83 @@ export function BuildingMap({
           }}
         >
           <defs>
-            {/* Grid Pattern */}
+            {/* Minor Blueprint Grid (15px dots) */}
             <pattern
-              id="bg-grid-pattern"
-              width="40"
-              height="40"
+              id="blueprint-minor-dots"
+              width="20"
+              height="20"
               patternUnits="userSpaceOnUse"
             >
-              <circle cx="20" cy="20" r="1" fill="#1e293b" opacity="0.6" />
+              <circle cx="10" cy="10" r="0.8" fill="#38bdf8" opacity="0.18" />
             </pattern>
 
-            {/* Glowing cyan filter for active route */}
-            <filter id="route-cyan-glow" x="-20%" y="-20%" width="140%" height="140%">
-              <feGaussianBlur stdDeviation="3.5" result="glow" />
+            {/* Major Blueprint Grid (80px lines) */}
+            <pattern
+              id="blueprint-major-lines"
+              width="80"
+              height="80"
+              patternUnits="userSpaceOnUse"
+            >
+              <rect width="80" height="80" fill="url(#blueprint-minor-dots)" />
+              <path
+                d="M 80 0 L 0 0 0 80"
+                fill="none"
+                stroke="#1e293b"
+                strokeWidth="0.8"
+                opacity="0.45"
+              />
+            </pattern>
+
+            {/* Neon Cyan Glow for Active Safe Route */}
+            <filter id="route-cyan-glow" x="-30%" y="-30%" width="160%" height="160%">
+              <feGaussianBlur stdDeviation="4.5" result="blur1" />
+              <feGaussianBlur stdDeviation="9" result="blur2" />
               <feMerge>
-                <feMergeNode in="glow" />
+                <feMergeNode in="blur2" />
+                <feMergeNode in="blur1" />
+                <feMergeNode in="SourceGraphic" />
+              </feMerge>
+            </filter>
+
+            {/* Radiant Emerald Glow for Open Exit */}
+            <filter id="exit-safe-glow" x="-35%" y="-35%" width="170%" height="170%">
+              <feGaussianBlur stdDeviation="5" result="glow" />
+              <feMerge>
                 <feMergeNode in="glow" />
                 <feMergeNode in="SourceGraphic" />
               </feMerge>
             </filter>
 
-            {/* Emerald glow filter for exit */}
-            <filter id="exit-glow" x="-30%" y="-30%" width="160%" height="160%">
-              <feGaussianBlur stdDeviation="4" result="glow" />
-              <feMerge>
-                <feMergeNode in="glow" />
-                <feMergeNode in="SourceGraphic" />
-              </feMerge>
+            {/* Subtle Node Drop Shadow */}
+            <filter id="node-shadow" x="-20%" y="-20%" width="140%" height="140%">
+              <feDropShadow dx="0" dy="3" stdDeviation="3.5" floodColor="#000000" floodOpacity="0.65" />
             </filter>
+
+            {/* Node Linear Gradients */}
+            <linearGradient id="grad-room" x1="0%" y1="0%" x2="100%" y2="100%">
+              <stop offset="0%" stopColor="#2563eb" />
+              <stop offset="100%" stopColor="#1d4ed8" />
+            </linearGradient>
+
+            <linearGradient id="grad-junction" x1="0%" y1="0%" x2="100%" y2="100%">
+              <stop offset="0%" stopColor="#8b5cf6" />
+              <stop offset="100%" stopColor="#6d28d9" />
+            </linearGradient>
+
+            <linearGradient id="grad-exit-open" x1="0%" y1="0%" x2="100%" y2="100%">
+              <stop offset="0%" stopColor="#10b981" />
+              <stop offset="100%" stopColor="#047857" />
+            </linearGradient>
+
+            <linearGradient id="grad-exit-closed" x1="0%" y1="0%" x2="100%" y2="100%">
+              <stop offset="0%" stopColor="#b91c1c" />
+              <stop offset="100%" stopColor="#7f1d1d" />
+            </linearGradient>
+
+            <linearGradient id="grad-node-blocked" x1="0%" y1="0%" x2="100%" y2="100%">
+              <stop offset="0%" stopColor="#ef4444" />
+              <stop offset="100%" stopColor="#b91c1c" />
+            </linearGradient>
           </defs>
 
           {/* Map Content Group subjected to pan and zoom */}
@@ -205,17 +265,17 @@ export function BuildingMap({
             transform={`translate(${panOffset.x}, ${panOffset.y}) scale(${zoomLevel})`}
             style={{ transformOrigin: 'center' }}
           >
-            {/* Background Grid */}
+            {/* Blueprint Grid Background */}
             <rect
-              className="map-bg-grid"
-              x="-5000"
-              y="-5000"
-              width="10000"
-              height="10000"
-              fill="url(#bg-grid-pattern)"
+              className="map-bg-blueprint blueprint-grid-rect"
+              x="-6000"
+              y="-6000"
+              width="12000"
+              height="12000"
+              fill="url(#blueprint-major-lines)"
             />
 
-            {/* 1. EDGES / CORRIDORS */}
+            {/* 1. EDGES / CORRIDORS LAYER */}
             <g className="edges-layer">
               {edges.map((edge) => {
                 const source = nodeMap.get(edge.from);
@@ -228,7 +288,6 @@ export function BuildingMap({
                 const isSeveredByNode = isFromBlocked || isToBlocked;
                 const isActiveRoute = activePathEdges.has(edge.id);
 
-                // Midpoint for cost badge
                 const midX = (source.x + target.x) / 2;
                 const midY = (source.y + target.y) / 2;
 
@@ -256,17 +315,31 @@ export function BuildingMap({
                     onMouseLeave={() => setHoveredItem(null)}
                     style={{ cursor: 'pointer' }}
                   >
-                    {/* Invisible fat line for easier clicking */}
+                    {/* Broad hit target for effortless interaction */}
                     <line
                       x1={source.x}
                       y1={source.y}
                       x2={target.x}
                       y2={target.y}
                       stroke="transparent"
-                      strokeWidth={16}
+                      strokeWidth={20}
                     />
 
-                    {/* Visual corridor line */}
+                    {/* Underlay glow path for active route */}
+                    {isActiveRoute && (
+                      <line
+                        x1={source.x}
+                        y1={source.y}
+                        x2={target.x}
+                        y2={target.y}
+                        stroke="#00e5ff"
+                        strokeWidth={10}
+                        strokeOpacity={0.25}
+                        strokeLinecap="round"
+                      />
+                    )}
+
+                    {/* Visible corridor line */}
                     <line
                       x1={source.x}
                       y1={source.y}
@@ -323,29 +396,28 @@ export function BuildingMap({
                 const isOnActiveRoute = activePathNodes.has(node.id);
                 const isDestination = routeResult?.destinationExit === node.id;
 
-                // Color palette selection
-                let nodeFill = '#3b82f6'; // Room default
+                let nodeFill = 'url(#grad-room)';
                 let nodeStroke = '#60a5fa';
                 let radius = 22;
 
                 if (node.type === 'junction') {
-                  nodeFill = '#7c3aed';
-                  nodeStroke = '#a78bfa';
+                  nodeFill = 'url(#grad-junction)';
+                  nodeStroke = '#c4b5fd';
                   radius = 19;
                 } else if (node.type === 'exit') {
                   if (isClosedExit) {
-                    nodeFill = '#991b1b'; // Muted dark red
-                    nodeStroke = '#ef4444';
+                    nodeFill = 'url(#grad-exit-closed)';
+                    nodeStroke = '#f87171';
                   } else {
-                    nodeFill = '#059669'; // Emerald
+                    nodeFill = 'url(#grad-exit-open)';
                     nodeStroke = '#34d399';
                   }
                   radius = 24;
                 }
 
                 if (isBlocked) {
-                  nodeFill = '#dc2626'; // Bright Red
-                  nodeStroke = '#f87171';
+                  nodeFill = 'url(#grad-node-blocked)';
+                  nodeStroke = '#fca5a5';
                 }
 
                 return (
@@ -373,44 +445,53 @@ export function BuildingMap({
                     onMouseLeave={() => setHoveredItem(null)}
                     style={{ cursor: 'pointer' }}
                   >
-                    {/* Selected Starting location subtle pulsing outer ring */}
+                    {/* Selected Starting Location: Tactical Pulse Ring */}
                     {isSelectedStart && (
-                      <circle
-                        r={radius + 10}
-                        className={`selected-pulse-ring ${
-                          isBlocked ? 'pulse-ring-danger' : 'pulse-ring-active'
-                        }`}
-                      />
+                      <>
+                        <circle
+                          r={radius + 9}
+                          className={`tactical-selection-ring ${
+                            isBlocked ? 'ring-danger' : 'ring-cyan'
+                          }`}
+                        />
+                        <circle
+                          r={radius + 15}
+                          className={`tactical-pulse-wave ${
+                            isBlocked ? 'wave-danger' : 'wave-cyan'
+                          }`}
+                        />
+                      </>
                     )}
 
-                    {/* Destination Exit Glow Ring */}
+                    {/* Destination Exit: Emerald Safe Aura */}
                     {isDestination && (
                       <circle
                         r={radius + 8}
-                        className="destination-halo-ring"
-                        filter="url(#exit-glow)"
+                        className="destination-safe-aura"
+                        filter="url(#exit-safe-glow)"
                       />
                     )}
 
-                    {/* Active Route Glow */}
+                    {/* Active Route Node Ring */}
                     {isOnActiveRoute && !isSelectedStart && !isDestination && (
                       <circle
                         r={radius + 6}
-                        className="route-halo-ring"
+                        className="route-waypoint-ring"
                         filter="url(#route-cyan-glow)"
                       />
                     )}
 
-                    {/* Main Node Circle */}
+                    {/* Main Node Disc */}
                     <circle
                       r={radius}
                       fill={nodeFill}
                       stroke={nodeStroke}
                       strokeWidth={isSelectedStart ? 3.5 : 2}
+                      filter="url(#node-shadow)"
                       className="node-main-circle"
                     />
 
-                    {/* Icon or indicator inside node */}
+                    {/* Node Interior Indicator */}
                     {isBlocked ? (
                       <text
                         x="0"
@@ -418,17 +499,17 @@ export function BuildingMap({
                         textAnchor="middle"
                         fill="#ffffff"
                         fontSize="14"
-                        fontWeight="bold"
+                        fontWeight="800"
                       >
                         ✕
                       </text>
                     ) : isClosedExit ? (
                       <text
                         x="0"
-                        y="5"
+                        y="4"
                         textAnchor="middle"
                         fill="#fecaca"
-                        fontSize="13"
+                        fontSize="12"
                         fontWeight="bold"
                       >
                         🔒
@@ -452,18 +533,18 @@ export function BuildingMap({
                         fill="#ffffff"
                         fontSize="11"
                         fontWeight="700"
-                        fontFamily="monospace"
+                        fontFamily="var(--font-mono)"
                       >
                         {node.id}
                       </text>
                     )}
 
-                    {/* Node ID & Label Pill below */}
-                    <g transform="translate(0, 32)">
+                    {/* Node Label Pill with Border */}
+                    <g transform="translate(0, 33)">
                       <rect
-                        x="-48"
+                        x="-46"
                         y="-9"
-                        width="96"
+                        width="92"
                         height="18"
                         rx="4"
                         className="node-label-pill-bg"
@@ -484,36 +565,38 @@ export function BuildingMap({
           </g>
         </svg>
 
-        {/* Hover Info Tooltip */}
+        {/* Floating Tooltip */}
         {hoveredItem && (
           <div className="map-floating-tooltip">
             {hoveredItem.type === 'node' ? (
               <div>
                 <div className="tooltip-header">
-                  <strong>{hoveredItem.id}</strong> — {hoveredItem.label}
+                  <span className="tooltip-id-tag">{hoveredItem.id}</span>
+                  <span className="tooltip-title">{hoveredItem.label}</span>
                 </div>
                 <div className="tooltip-sub">
-                  Type: <span className="text-cyan">{hoveredItem.nodeType}</span>
-                  {hoveredItem.blocked && <span className="text-danger"> (Blocked)</span>}
-                  {hoveredItem.closed && <span className="text-danger"> (Closed)</span>}
+                  Type: <span className="tooltip-type-val">{hoveredItem.nodeType}</span>
+                  {hoveredItem.blocked && <span className="tooltip-badge-blocked"> · BLOCKED</span>}
+                  {hoveredItem.closed && <span className="tooltip-badge-blocked"> · CLOSED</span>}
                 </div>
                 <div className="tooltip-action-hint">
                   {hoveredItem.nodeType === 'exit'
                     ? 'Click to toggle open/closed'
                     : hoveredItem.blocked
-                    ? 'Click to unblock'
-                    : 'Click to select as start location'}
+                    ? 'Click to unblock node'
+                    : 'Click to set as start origin'}
                 </div>
               </div>
             ) : (
               <div>
                 <div className="tooltip-header">
-                  Corridor <strong>{hoveredItem.id}</strong> ({hoveredItem.from} ↔ {hoveredItem.to})
+                  <span className="tooltip-id-tag">EDGE {hoveredItem.id}</span>
+                  <span className="tooltip-title">{hoveredItem.from} ↔ {hoveredItem.to}</span>
                 </div>
                 <div className="tooltip-sub">
-                  Cost: <span className="text-cyan">{hoveredItem.cost} units</span>
-                  {hoveredItem.blocked && <span className="text-danger"> (Blocked)</span>}
-                  {hoveredItem.severed && <span className="text-amber"> (Severed by node)</span>}
+                  Traversal Cost: <span className="tooltip-cost-val">{hoveredItem.cost} units</span>
+                  {hoveredItem.blocked && <span className="tooltip-badge-blocked"> · BLOCKED</span>}
+                  {hoveredItem.severed && <span className="tooltip-badge-severed"> · SEVERED BY NODE</span>}
                 </div>
                 <div className="tooltip-action-hint">Click corridor to toggle hazard</div>
               </div>
@@ -522,7 +605,7 @@ export function BuildingMap({
         )}
       </div>
 
-      {/* Map Visual Legend */}
+      {/* Map Visual Legend Bar */}
       <div className="map-legend-bar">
         <span className="legend-title">{t.legendTitle}:</span>
         <div className="legend-items-list">

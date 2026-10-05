@@ -30,6 +30,9 @@ export function App() {
   // Selected Starting Location
   const [selectedStartId, setSelectedStartId] = useState('R1');
 
+  // Active preset ID for indicator
+  const [activePreset, setActivePreset] = useState('sample');
+
   // Validation Error Modal State
   const [validationError, setValidationError] = useState(null);
 
@@ -126,6 +129,7 @@ export function App() {
           setSelectedStartId(null);
         }
 
+        setActivePreset('custom');
         showToast(`${t.successLoaded} (${validData.building})`);
       } catch {
         setValidationError(t.fileParseError);
@@ -146,11 +150,12 @@ export function App() {
     setBlockedEdges(new Set(defaultSampleBuilding.initial_state?.blocked_edges || []));
     setClosedExits(new Set(defaultSampleBuilding.initial_state?.closed_exits || []));
     setSelectedStartId('R1');
+    setActivePreset('sample');
     showToast(t.successLoaded);
   }, [showToast, t.successLoaded]);
 
   // Load specific test preset (for judges and demonstration)
-  const handleLoadPreset = async (presetFile) => {
+  const handleLoadPreset = async (presetFile, presetId) => {
     try {
       const res = await fetch(presetFile);
       if (!res.ok) throw new Error('Failed to fetch preset');
@@ -163,12 +168,13 @@ export function App() {
         setClosedExits(new Set(validation.sanitizedData.initial_state?.closed_exits || []));
         const firstRoom = validation.sanitizedData.nodes.find((n) => n.type === 'room' || n.type === 'junction');
         if (firstRoom) setSelectedStartId(firstRoom.id);
+        setActivePreset(presetId);
         showToast(`Loaded preset: ${validation.sanitizedData.building}`);
       } else {
         setValidationError(validation.error);
       }
-    } catch (err) {
-      console.error(err);
+    } catch {
+      // handle error gracefully
     }
   };
 
@@ -279,20 +285,20 @@ export function App() {
       <div className="presets-bar">
         <span className="presets-label">Quick Test Scenarios:</span>
         <button
-          className="preset-pill-btn active"
+          className={`preset-pill-btn ${activePreset === 'sample' ? 'active' : ''}`}
           onClick={handleLoadSample}
         >
           Sample Academic Complex (Default)
         </button>
         <button
-          className="preset-pill-btn"
-          onClick={() => handleLoadPreset('/samples/tie_break_test.json')}
+          className={`preset-pill-btn ${activePreset === 'tie_break' ? 'active' : ''}`}
+          onClick={() => handleLoadPreset('/samples/tie_break_test.json', 'tie_break')}
         >
           Tie-Breaker Test (EA vs EB)
         </button>
         <button
-          className="preset-pill-btn"
-          onClick={() => handleLoadPreset('/samples/disconnected_graph.json')}
+          className={`preset-pill-btn ${activePreset === 'disconnected' ? 'active' : ''}`}
+          onClick={() => handleLoadPreset('/samples/disconnected_graph.json', 'disconnected')}
         >
           Disconnected Graph Test
         </button>

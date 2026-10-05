@@ -20,16 +20,14 @@ export function HazardControlsSection({
   onResetSimulation,
   t
 }) {
-  const [activeTab, setActiveTab] = useState('nodes'); // 'nodes' | 'corridors' | 'exits'
+  const [activeTab, setActiveTab] = useState('nodes');
   const [searchQuery, setSearchQuery] = useState('');
 
-  // Partition nodes
   const roomsAndJunctions = nodes.filter(n => n.type === 'room' || n.type === 'junction');
   const exits = nodes.filter(n => n.type === 'exit');
 
   const query = searchQuery.toLowerCase().trim();
 
-  // Filtered lists
   const filteredNodes = roomsAndJunctions.filter(
     n => n.id.toLowerCase().includes(query) || n.label.toLowerCase().includes(query)
   );
@@ -49,12 +47,12 @@ export function HazardControlsSection({
     <div className="sidebar-section hazard-controls-section">
       <div className="section-header">
         <div className="section-title-wrap">
-          <Flame size={17} className="section-icon" />
+          <Flame size={16} className="section-icon text-amber" />
           <h2 className="section-title">{t.hazardControls}</h2>
         </div>
       </div>
 
-      {/* Control Tabs */}
+      {/* Segmented Control Tabs */}
       <div className="hazard-tabs" role="tablist">
         <button
           className={`hazard-tab-btn ${activeTab === 'nodes' ? 'active' : ''}`}
@@ -93,9 +91,9 @@ export function HazardControlsSection({
         </button>
       </div>
 
-      {/* Quick Search */}
+      {/* Search Input */}
       <div className="hazard-search-wrap">
-        <Search size={14} className="search-icon" />
+        <Search size={13} className="search-icon" />
         <input
           type="text"
           className="hazard-search-input"
@@ -153,12 +151,12 @@ export function HazardControlsSection({
                     >
                       {isBlocked ? (
                         <>
-                          <Unlock size={14} />
+                          <Unlock size={13} />
                           <span>{t.unblock}</span>
                         </>
                       ) : (
                         <>
-                          <Ban size={14} />
+                          <Ban size={13} />
                           <span>{t.block}</span>
                         </>
                       )}
@@ -198,6 +196,8 @@ export function HazardControlsSection({
                         <span className="cost-tag">
                           {t.costBadge}: {edge.cost}
                         </span>
+                      </div>
+                      <div className="corridor-status-row">
                         <span
                           className={`status-pill ${
                             isBlocked ? 'status-pill-blocked' : isSeveredByNode ? 'status-pill-severed' : 'status-pill-active'
@@ -219,12 +219,12 @@ export function HazardControlsSection({
                     >
                       {isBlocked ? (
                         <>
-                          <Unlock size={14} />
+                          <Unlock size={13} />
                           <span>{t.unblock}</span>
                         </>
                       ) : (
                         <>
-                          <Ban size={14} />
+                          <Ban size={13} />
                           <span>{t.block}</span>
                         </>
                       )}
@@ -271,12 +271,12 @@ export function HazardControlsSection({
                     >
                       {isClosed ? (
                         <>
-                          <Unlock size={14} />
+                          <Unlock size={13} />
                           <span>{t.reopen}</span>
                         </>
                       ) : (
                         <>
-                          <Lock size={14} />
+                          <Lock size={13} />
                           <span>{t.close}</span>
                         </>
                       )}
@@ -296,7 +296,7 @@ export function HazardControlsSection({
           onClick={onResetSimulation}
           title={t.resetHelp}
         >
-          <RotateCcw size={17} />
+          <RotateCcw size={15} />
           <span>{t.resetSimulation}</span>
         </button>
         <span className="reset-subtext">{t.resetHelp}</span>
